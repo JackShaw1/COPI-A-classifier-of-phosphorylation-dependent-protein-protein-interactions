@@ -1,0 +1,2 @@
+# COPI-A-classifier-of-phosphorylation-dependent-protein-protein-interactions
+COPI predicts phosphorylation sites that might stimulate PPIs using learned features from phosphorylation site structure predictions generated with AlphaFold-Multimer. By learning the intricate stereochemistry of phosphorylation site interactions, COPI identifies similar binding pockets to accelerate phospho-dependent PPI discovery.
