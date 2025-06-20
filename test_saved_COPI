@@ -1,0 +1,36 @@
+import os
+import torch
+import numpy as np
+from sep_tpo_PDB_dataset import PDBDataset
+
+MODEL_PATH     = 'PhosNet_full.pth'
+PDB_FILE       = 'test_pdbs/TICRR_HUMAN__TOPB1_HUMAN__3432aa_unrelaxed_rank_001_alphafold2_multimer_v3_model_4_seed_000.pdb' # example file
+CHAIN_ID       = 'A'                          # target chain identifier
+RESIDUE_INDEX  = 969          # target residue index (integer)
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Load the full model (architecture + weights)
+model = torch.load(MODEL_PATH, map_location=DEVICE)
+model.to(DEVICE)
+model.eval()
+
+empty_csv = "empty.csv"
+open(empty_csv, "w").close()
+dataset = PDBDataset(empty_csv, empty_csv, transform=None)
+dataset.samples = [(PDB_FILE, CHAIN_ID, RESIDUE_INDEX, 0)]
+sample = dataset[0]
+if sample is None:
+    raise RuntimeError(
+        "Failed to generate point cloud. "
+        "Please verify PDB_FILE, CHAIN_ID, and RESIDUE_INDEX."
+    )
+coords = torch.tensor(sample['coordinates'], dtype=torch.float32)
+coords = coords.unsqueeze(0).to(DEVICE)
+
+# Run inference
+with torch.no_grad():
+    output = model(coords)
+score = output.cpu().item()
+
+# finalize
+print(f"PhosNet prediction score for {PDB_FILE} {CHAIN_ID}{RESIDUE_INDEX}: {score:.4f}")
